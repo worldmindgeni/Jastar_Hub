@@ -7,7 +7,10 @@ class ApiClient {
     BaseOptions(
       // For physical devices, use your computer's local IP address.
       // Make sure your phone and PC are on the same Wi-Fi network!
-      baseUrl: 'http://192.168.0.8:3000',
+      // Development URL (Your Local IP)
+      // baseUrl: 'http://192.168.0.8:3000',
+      // Production URL (Render.com)
+      baseUrl: 'https://jastar-backend.onrender.com', // ЗАМЕНИТЕ на ваш реальный URL после деплоя
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
       contentType: 'application/json',
