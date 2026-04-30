@@ -5,9 +5,11 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import TfidfVectorizer
 import requests
 
+import os
+
 app = FastAPI(title="Jastar Hub AI Recommendation Service")
 
-BACKEND_URL = "http://localhost:3000"
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:3000")
 
 @app.get("/")
 def read_root():
