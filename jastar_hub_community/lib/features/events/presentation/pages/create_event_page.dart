@@ -111,7 +111,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _category,
+                initialValue: _category,
                 decoration: InputDecoration(
                   labelText: 'Категория',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
@@ -121,7 +121,7 @@ class _CreateEventPageState extends State<CreateEventPage> {
               ),
               const SizedBox(height: 16),
               DropdownButtonFormField<String>(
-                value: _city,
+                initialValue: _city,
                 decoration: InputDecoration(
                   labelText: 'Город',
                   border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),

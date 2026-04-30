@@ -15,7 +15,7 @@ const axios_1 = require("@nestjs/axios");
 const rxjs_1 = require("rxjs");
 let RecommendationsService = class RecommendationsService {
     httpService;
-    AI_SERVICE_URL = 'http://localhost:8000';
+    AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
     constructor(httpService) {
         this.httpService = httpService;
     }

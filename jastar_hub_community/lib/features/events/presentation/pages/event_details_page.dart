@@ -7,14 +7,30 @@ import 'package:jastar_hub_community/core/theme/app_colors.dart';
 import 'package:jastar_hub_community/core/l10n/app_localizations.dart';
 import 'package:jastar_hub_community/shared/models/event_model.dart';
 import 'package:jastar_hub_community/shared/widgets/app_button.dart';
+import 'package:jastar_hub_community/features/events/data/repositories/event_repository.dart';
 
-class EventDetailsPage extends StatelessWidget {
+class EventDetailsPage extends StatefulWidget {
   final EventModel event;
 
   const EventDetailsPage({super.key, required this.event});
 
+  @override
+  State<EventDetailsPage> createState() => _EventDetailsPageState();
+}
+
+class _EventDetailsPageState extends State<EventDetailsPage> {
+  late EventModel _event;
+  final EventRepository _repo = EventRepository();
+  bool _isActionLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _event = widget.event;
+  }
+
   Color _getCategoryColor() {
-    switch (event.category) {
+    switch (_event.category) {
       case 'technology':
         return AppColors.categoryTech;
       case 'sports':
@@ -37,6 +53,53 @@ class EventDetailsPage extends StatelessWidget {
         return AppColors.categoryEntertainment;
       default:
         return AppColors.primary;
+    }
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (_isActionLoading) return;
+    setState(() => _isActionLoading = true);
+    try {
+      final newStatus = await _repo.toggleFavorite(_event.id);
+      if (mounted) {
+        setState(() {
+          _event = _event.copyWith(isFavorite: newStatus);
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Ошибка сохранения избранного')));
+      }
+    } finally {
+      if (mounted) setState(() => _isActionLoading = false);
+    }
+  }
+
+  Future<void> _toggleJoin() async {
+    if (_isActionLoading) return;
+    setState(() => _isActionLoading = true);
+    try {
+      if (_event.isJoined) {
+        await _repo.leaveEvent(_event.id);
+      } else {
+        await _repo.joinEvent(_event.id);
+      }
+      
+      if (mounted) {
+        setState(() {
+          final isJoined = !_event.isJoined;
+          _event = _event.copyWith(
+            isJoined: isJoined,
+            attendees: isJoined ? _event.attendees + 1 : _event.attendees - 1,
+          );
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Не удалось выполнить действие')));
+      }
+    } finally {
+      if (mounted) setState(() => _isActionLoading = false);
     }
   }
 
@@ -67,10 +130,10 @@ class EventDetailsPage extends StatelessWidget {
                 actions: [
                   IconButton(
                     icon: Icon(
-                      event.isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                      color: event.isFavorite ? AppColors.accent : Colors.white,
+                      _event.isFavorite ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      color: _event.isFavorite ? AppColors.accent : Colors.white,
                     ),
-                    onPressed: () {},
+                    onPressed: _toggleFavorite,
                   ),
                   IconButton(
                     icon: const Icon(Icons.share_rounded, color: Colors.white),
@@ -83,7 +146,7 @@ class EventDetailsPage extends StatelessWidget {
                     fit: StackFit.expand,
                     children: [
                       CachedNetworkImage(
-                        imageUrl: event.imageUrl,
+                        imageUrl: _event.imageUrl,
                         fit: BoxFit.cover,
                         placeholder: (context, url) => Container(color: catColor.withValues(alpha: 0.2)),
                         errorWidget: (context, url, error) => Container(color: catColor.withValues(alpha: 0.2)),
@@ -130,7 +193,7 @@ class EventDetailsPage extends StatelessWidget {
                             border: Border.all(color: catColor.withValues(alpha: 0.3)),
                           ),
                           child: Text(
-                            context.tr(event.category),
+                            context.tr(_event.category),
                             style: TextStyle(
                               color: catColor,
                               fontSize: 13,
@@ -142,7 +205,7 @@ class EventDetailsPage extends StatelessWidget {
 
                         // Title
                         Text(
-                          event.title,
+                          _event.title,
                           style: Theme.of(context).textTheme.displaySmall?.copyWith(fontSize: 26),
                         ),
                         const SizedBox(height: 24),
@@ -152,7 +215,7 @@ class EventDetailsPage extends StatelessWidget {
                           context,
                           icon: Icons.calendar_today_rounded,
                           color: catColor,
-                          title: dateFormat.format(event.date),
+                          title: dateFormat.format(_event.date),
                           subtitle: 'Добавить в календарь',
                           isDark: isDark,
                         ),
@@ -161,8 +224,8 @@ class EventDetailsPage extends StatelessWidget {
                           context,
                           icon: Icons.location_on_rounded,
                           color: AppColors.accent,
-                          title: event.location,
-                          subtitle: event.city,
+                          title: _event.location,
+                          subtitle: _event.city,
                           isDark: isDark,
                         ),
                         const SizedBox(height: 32),
@@ -177,7 +240,7 @@ class EventDetailsPage extends StatelessWidget {
                           children: [
                             CircleAvatar(
                               radius: 24,
-                              backgroundImage: CachedNetworkImageProvider(event.organizerAvatar),
+                              backgroundImage: CachedNetworkImageProvider(_event.organizerAvatar),
                             ),
                             const SizedBox(width: 16),
                             Expanded(
@@ -185,7 +248,7 @@ class EventDetailsPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    event.organizerName,
+                                    _event.organizerName,
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 16,
@@ -201,14 +264,6 @@ class EventDetailsPage extends StatelessWidget {
                                 ],
                               ),
                             ),
-                            AppButton(
-                              text: 'Folllow',
-                              variant: AppButtonVariant.outlined,
-                              height: 36,
-                              isFullWidth: false,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
-                              onPressed: () {},
-                            ),
                           ],
                         ),
                         const SizedBox(height: 32),
@@ -220,7 +275,7 @@ class EventDetailsPage extends StatelessWidget {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          event.description,
+                          _event.description,
                           style: TextStyle(
                             fontSize: 15,
                             height: 1.6,
@@ -234,11 +289,11 @@ class EventDetailsPage extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              '${event.attendees} ${context.tr('attendees')}',
+                              '${_event.attendees} ${context.tr('attendees')}',
                               style: Theme.of(context).textTheme.headlineMedium,
                             ),
                             Text(
-                              '${event.maxAttendees} max',
+                              '${_event.maxAttendees} max',
                               style: TextStyle(
                                 color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                               ),
@@ -249,7 +304,7 @@ class EventDetailsPage extends StatelessWidget {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(4),
                           child: LinearProgressIndicator(
-                            value: event.fillPercentage,
+                            value: _event.fillPercentage,
                             backgroundColor: isDark ? AppColors.cardDarkElevated : AppColors.shimmerBaseLight,
                             valueColor: AlwaysStoppedAnimation<Color>(catColor),
                             minHeight: 8,
@@ -297,9 +352,9 @@ class EventDetailsPage extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        event.isFree ? context.tr('free') : '${event.price.toInt()} ₸',
+                        _event.isFree ? context.tr('free') : '${_event.price.toInt()} ₸',
                         style: TextStyle(
-                          color: event.isFree ? AppColors.success : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
+                          color: _event.isFree ? AppColors.success : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
@@ -309,11 +364,10 @@ class EventDetailsPage extends StatelessWidget {
                   const SizedBox(width: 32),
                   Expanded(
                     child: AppButton(
-                      text: event.isJoined ? context.tr('leave_event') : context.tr('join_event'),
-                      variant: event.isJoined ? AppButtonVariant.outlined : AppButtonVariant.gradient,
-                      onPressed: () {
-                        // Toggle join logic
-                      },
+                      isLoading: _isActionLoading,
+                      text: _event.isJoined ? context.tr('leave_event') : context.tr('join_event'),
+                      variant: _event.isJoined ? AppButtonVariant.outlined : AppButtonVariant.gradient,
+                      onPressed: _toggleJoin,
                     ),
                   ),
                 ],

@@ -94,8 +94,17 @@ let AuthService = class AuthService {
                 avatarUrl: user.avatarUrl,
                 rank: user.rank,
                 points: user.points,
+                role: user.role,
             },
         };
+    }
+    async getProfile(userId) {
+        const user = await this.usersService.findOne({ id: userId });
+        if (!user) {
+            throw new common_1.UnauthorizedException('User not found');
+        }
+        const { password, ...userWithoutPassword } = user;
+        return userWithoutPassword;
     }
 };
 exports.AuthService = AuthService;

@@ -61,7 +61,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('sendMessage')
   async handleMessage(
-    @MessageBody() data: { senderId: string; receiverId: string; content: string },
+    @MessageBody()
+    data: { senderId: string; receiverId: string; content: string },
     @ConnectedSocket() client: Socket,
   ) {
     const message = await this.chatService.saveMessage(data);
@@ -79,7 +80,8 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   @SubscribeMessage('typing')
   handleTyping(
-    @MessageBody() data: { senderId: string; receiverId: string; isTyping: boolean },
+    @MessageBody()
+    data: { senderId: string; receiverId: string; isTyping: boolean },
     @ConnectedSocket() client: Socket,
   ) {
     const receiverSocketId = this.connectedUsers.get(data.receiverId);

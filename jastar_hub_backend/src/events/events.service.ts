@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ConflictException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Event } from '@prisma/client';
 
@@ -182,11 +186,13 @@ export class EventsService {
       where: { userId },
       include: {
         event: {
-          include: { organizer: { select: { id: true, name: true, avatarUrl: true } } },
+          include: {
+            organizer: { select: { id: true, name: true, avatarUrl: true } },
+          },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
-    return participations.map(p => p.event);
+    return participations.map((p) => p.event);
   }
 }

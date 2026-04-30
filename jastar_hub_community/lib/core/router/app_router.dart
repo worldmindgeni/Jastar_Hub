@@ -13,6 +13,7 @@ import 'package:jastar_hub_community/features/profile/presentation/pages/profile
 import 'package:jastar_hub_community/features/profile/presentation/pages/settings_page.dart';
 import 'package:jastar_hub_community/features/map/presentation/pages/map_page.dart';
 import 'package:jastar_hub_community/features/chat/presentation/pages/chat_page.dart';
+import 'package:jastar_hub_community/features/chat/presentation/pages/chat_details_page.dart';
 import 'package:jastar_hub_community/features/notifications/presentation/notifications_page.dart';
 import 'package:jastar_hub_community/features/events/presentation/pages/create_event_page.dart';
 import 'package:jastar_hub_community/features/admin/presentation/pages/admin_page.dart';
@@ -124,6 +125,20 @@ class AppRouter {
               GoRoute(
                 path: '/chat',
                 builder: (context, state) => const ChatPage(),
+                routes: [
+                  GoRoute(
+                    path: ':id',
+                    builder: (context, state) {
+                      final partnerId = state.pathParameters['id']!;
+                      final extra = state.extra as Map<String, dynamic>? ?? {};
+                      return ChatDetailsPage(
+                        partnerId: partnerId,
+                        partnerName: extra['partnerName'] ?? 'Unknown',
+                        partnerAvatarUrl: extra['partnerAvatarUrl'] ?? '',
+                      );
+                    },
+                  ),
+                ],
               ),
             ],
           ),

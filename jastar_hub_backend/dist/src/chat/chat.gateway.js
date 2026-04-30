@@ -15,29 +15,62 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.ChatGateway = void 0;
 const websockets_1 = require("@nestjs/websockets");
 const socket_io_1 = require("socket.io");
-const prisma_service_1 = require("../prisma/prisma.service");
+const chat_service_1 = require("./chat.service");
 let ChatGateway = class ChatGateway {
-    prisma;
+    chatService;
     server;
-    constructor(prisma) {
-        this.prisma = prisma;
+    connectedUsers = new Map();
+    constructor(chatService) {
+        this.chatService = chatService;
     }
     handleConnection(client) {
         console.log(`Client connected: ${client.id}`);
     }
     handleDisconnect(client) {
+        for (const [userId, socketId] of this.connectedUsers.entries()) {
+            if (socketId === client.id) {
+                this.connectedUsers.delete(userId);
+                this.server.emit('userOffline', { userId });
+                break;
+            }
+        }
         console.log(`Client disconnected: ${client.id}`);
     }
+    handleRegister(data, client) {
+        this.connectedUsers.set(data.userId, client.id);
+        client.join(`user_${data.userId}`);
+        this.server.emit('userOnline', { userId: data.userId });
+        return { status: 'registered' };
+    }
+    handleJoinRoom(data, client) {
+        client.join(data.roomId);
+        return { status: 'joined', roomId: data.roomId };
+    }
     async handleMessage(data, client) {
-        const message = await this.prisma.message.create({
-            data: {
-                content: data.content,
-                senderId: data.senderId,
-                receiverId: data.receiverId,
-            },
-        });
-        this.server.emit('messageReceived', message);
+        const message = await this.chatService.saveMessage(data);
+        const receiverSocketId = this.connectedUsers.get(data.receiverId);
+        if (receiverSocketId) {
+            this.server.to(receiverSocketId).emit('messageReceived', message);
+        }
+        client.emit('messageSent', message);
         return message;
+    }
+    handleTyping(data, client) {
+        const receiverSocketId = this.connectedUsers.get(data.receiverId);
+        if (receiverSocketId) {
+            this.server.to(receiverSocketId).emit('userTyping', {
+                userId: data.senderId,
+                isTyping: data.isTyping,
+            });
+        }
+    }
+    async handleMarkRead(data) {
+        const receiverSocketId = this.connectedUsers.get(data.partnerId);
+        if (receiverSocketId) {
+            this.server.to(receiverSocketId).emit('messagesRead', {
+                byUserId: data.userId,
+            });
+        }
     }
 };
 exports.ChatGateway = ChatGateway;
@@ -46,6 +79,22 @@ __decorate([
     __metadata("design:type", socket_io_1.Server)
 ], ChatGateway.prototype, "server", void 0);
 __decorate([
+    (0, websockets_1.SubscribeMessage)('register'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], ChatGateway.prototype, "handleRegister", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('joinRoom'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], ChatGateway.prototype, "handleJoinRoom", null);
+__decorate([
     (0, websockets_1.SubscribeMessage)('sendMessage'),
     __param(0, (0, websockets_1.MessageBody)()),
     __param(1, (0, websockets_1.ConnectedSocket)()),
@@ -53,12 +102,27 @@ __decorate([
     __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
     __metadata("design:returntype", Promise)
 ], ChatGateway.prototype, "handleMessage", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('typing'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __param(1, (0, websockets_1.ConnectedSocket)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, socket_io_1.Socket]),
+    __metadata("design:returntype", void 0)
+], ChatGateway.prototype, "handleTyping", null);
+__decorate([
+    (0, websockets_1.SubscribeMessage)('markRead'),
+    __param(0, (0, websockets_1.MessageBody)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], ChatGateway.prototype, "handleMarkRead", null);
 exports.ChatGateway = ChatGateway = __decorate([
     (0, websockets_1.WebSocketGateway)({
         cors: {
             origin: '*',
         },
     }),
-    __metadata("design:paramtypes", [prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [chat_service_1.ChatService])
 ], ChatGateway);
 //# sourceMappingURL=chat.gateway.js.map

@@ -17,12 +17,22 @@ const events_module_1 = require("./events/events.module");
 const admin_module_1 = require("./admin/admin.module");
 const chat_module_1 = require("./chat/chat.module");
 const recommendations_module_1 = require("./recommendations/recommendations.module");
+const notifications_module_1 = require("./notifications/notifications.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
 exports.AppModule = AppModule = __decorate([
     (0, common_1.Module)({
-        imports: [prisma_module_1.PrismaModule, auth_module_1.AuthModule, users_module_1.UsersModule, events_module_1.EventsModule, admin_module_1.AdminModule, chat_module_1.ChatModule, recommendations_module_1.RecommendationsModule],
+        imports: [
+            prisma_module_1.PrismaModule,
+            auth_module_1.AuthModule,
+            users_module_1.UsersModule,
+            events_module_1.EventsModule,
+            admin_module_1.AdminModule,
+            chat_module_1.ChatModule,
+            recommendations_module_1.RecommendationsModule,
+            notifications_module_1.NotificationsModule,
+        ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],
     })

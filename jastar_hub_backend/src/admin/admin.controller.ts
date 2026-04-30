@@ -45,7 +45,9 @@ export class AdminController {
 
   @Get('events/pending')
   async getPendingEvents() {
-    return this.eventsService.findAll({ where: { status: EventStatus.PENDING } });
+    return this.eventsService.findAll({
+      where: { status: EventStatus.PENDING },
+    });
   }
 
   @Patch('events/moderate/:id')

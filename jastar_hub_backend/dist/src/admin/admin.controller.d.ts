@@ -63,6 +63,7 @@ export declare class AdminController {
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        organizerId: string;
         title: string;
         description: string;
         imageUrl: string;
@@ -76,12 +77,12 @@ export declare class AdminController {
         attendeesCount: number;
         maxAttendees: number;
         status: import("@prisma/client").$Enums.EventStatus;
-        organizerId: string;
     }[]>;
     moderateEvent(id: string, status: EventStatus): Promise<{
         id: string;
         createdAt: Date;
         updatedAt: Date;
+        organizerId: string;
         title: string;
         description: string;
         imageUrl: string;
@@ -95,6 +96,5 @@ export declare class AdminController {
         attendeesCount: number;
         maxAttendees: number;
         status: import("@prisma/client").$Enums.EventStatus;
-        organizerId: string;
     }>;
 }

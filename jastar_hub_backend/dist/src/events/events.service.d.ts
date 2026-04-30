@@ -24,6 +24,20 @@ export declare class EventsService {
         eventId: string;
         userId: string;
     }>;
+    toggleFavorite(eventId: string, userId: string): Promise<{
+        isFavorite: boolean;
+    }>;
+    getUserFavorites(userId: string): Promise<Event[]>;
+    trackInteraction(eventId: string, userId: string, type: string): Promise<{
+        id: string;
+        createdAt: Date;
+        eventId: string;
+        userId: string;
+        type: string;
+    }>;
     updateEvent(id: string, data: Prisma.EventUpdateInput): Promise<Event>;
     deleteEvent(where: Prisma.EventWhereUniqueInput): Promise<Event>;
+    getTrending(take?: number): Promise<Event[]>;
+    getUserOrganizedEvents(userId: string): Promise<Event[]>;
+    getUserJoinedEvents(userId: string): Promise<Event[]>;
 }

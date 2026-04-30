@@ -25,13 +25,16 @@ let EventsService = class EventsService {
         };
         return this.prisma.event.findMany({
             skip,
-            take,
+            take: take || 20,
             cursor,
             where: finalWhere,
-            orderBy,
+            orderBy: orderBy || { date: 'asc' },
             include: {
                 organizer: {
                     select: { id: true, name: true, avatarUrl: true },
+                },
+                _count: {
+                    select: { favorites: true },
                 },
             },
         });
@@ -43,6 +46,9 @@ let EventsService = class EventsService {
                 organizer: {
                     select: { id: true, name: true, avatarUrl: true },
                 },
+                _count: {
+                    select: { favorites: true, participations: true },
+                },
             },
         });
         if (!event) {
@@ -51,11 +57,15 @@ let EventsService = class EventsService {
         return event;
     }
     async createEvent(data) {
-        return this.prisma.event.create({
-            data,
-        });
+        return this.prisma.event.create({ data });
     }
     async joinEvent(eventId, userId) {
+        const existing = await this.prisma.participation.findUnique({
+            where: { userId_eventId: { userId, eventId } },
+        });
+        if (existing) {
+            throw new common_1.ConflictException('Already joined this event');
+        }
         return this.prisma.$transaction(async (tx) => {
             const participation = await tx.participation.create({
                 data: { eventId, userId },
@@ -86,6 +96,44 @@ let EventsService = class EventsService {
             return participation;
         });
     }
+    async toggleFavorite(eventId, userId) {
+        const existing = await this.prisma.favorite.findUnique({
+            where: { userId_eventId: { userId, eventId } },
+        });
+        if (existing) {
+            await this.prisma.favorite.delete({
+                where: { id: existing.id },
+            });
+            return { isFavorite: false };
+        }
+        else {
+            await this.prisma.favorite.create({
+                data: { userId, eventId },
+            });
+            return { isFavorite: true };
+        }
+    }
+    async getUserFavorites(userId) {
+        const favorites = await this.prisma.favorite.findMany({
+            where: { userId },
+            include: {
+                event: {
+                    include: {
+                        organizer: {
+                            select: { id: true, name: true, avatarUrl: true },
+                        },
+                    },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        return favorites.map((f) => f.event);
+    }
+    async trackInteraction(eventId, userId, type) {
+        return this.prisma.eventInteraction.create({
+            data: { eventId, userId, type },
+        });
+    }
     async updateEvent(id, data) {
         return this.prisma.event.update({
             where: { id },
@@ -93,9 +141,40 @@ let EventsService = class EventsService {
         });
     }
     async deleteEvent(where) {
-        return this.prisma.event.delete({
-            where,
+        return this.prisma.event.delete({ where });
+    }
+    async getTrending(take = 10) {
+        return this.prisma.event.findMany({
+            where: { status: 'APPROVED' },
+            orderBy: { attendeesCount: 'desc' },
+            take,
+            include: {
+                organizer: {
+                    select: { id: true, name: true, avatarUrl: true },
+                },
+            },
         });
+    }
+    async getUserOrganizedEvents(userId) {
+        return this.prisma.event.findMany({
+            where: { organizerId: userId },
+            include: {
+                organizer: { select: { id: true, name: true, avatarUrl: true } },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+    async getUserJoinedEvents(userId) {
+        const participations = await this.prisma.participation.findMany({
+            where: { userId },
+            include: {
+                event: {
+                    include: { organizer: { select: { id: true, name: true, avatarUrl: true } } },
+                },
+            },
+            orderBy: { createdAt: 'desc' },
+        });
+        return participations.map(p => p.event);
     }
 };
 exports.EventsService = EventsService;

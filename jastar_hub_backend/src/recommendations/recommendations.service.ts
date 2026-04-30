@@ -4,7 +4,8 @@ import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class RecommendationsService {
-  private readonly AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
+  private readonly AI_SERVICE_URL =
+    process.env.AI_SERVICE_URL || 'http://localhost:8000';
 
   constructor(private readonly httpService: HttpService) {}
 

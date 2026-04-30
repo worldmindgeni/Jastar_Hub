@@ -5,7 +5,11 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ChatService {
   constructor(private prisma: PrismaService) {}
 
-  async saveMessage(data: { senderId: string; receiverId: string; content: string }) {
+  async saveMessage(data: {
+    senderId: string;
+    receiverId: string;
+    content: string;
+  }) {
     return this.prisma.message.create({
       data: {
         content: data.content,
@@ -78,7 +82,12 @@ export class ChatService {
     return conversations;
   }
 
-  async getMessageHistory(userId: string, partnerId: string, skip = 0, take = 50) {
+  async getMessageHistory(
+    userId: string,
+    partnerId: string,
+    skip = 0,
+    take = 50,
+  ) {
     const messages = await this.prisma.message.findMany({
       where: {
         OR: [

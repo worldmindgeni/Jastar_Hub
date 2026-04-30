@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -182,7 +183,15 @@ class _ChatPageState extends State<ChatPage> {
                   ),
               ],
             ),
-            onTap: () {},
+            onTap: () {
+              context.push(
+                '/chat/${partner?['id']}',
+                extra: {
+                  'partnerName': partner?['name'] ?? 'Unknown',
+                  'partnerAvatarUrl': partner?['avatarUrl'] ?? '',
+                },
+              );
+            },
           );
         },
       ),
@@ -276,7 +285,15 @@ class _ChatPageState extends State<ChatPage> {
                 ),
             ],
           ),
-          onTap: () {},
+          onTap: () {
+            context.push(
+              '/chat/placeholder-$index',
+              extra: {
+                'partnerName': item['name'] as String,
+                'partnerAvatarUrl': item['img'] as String,
+              },
+            );
+          },
         );
       },
     );

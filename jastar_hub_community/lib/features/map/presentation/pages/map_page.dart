@@ -39,7 +39,7 @@ class _MapPageState extends State<MapPage> {
                 options: MapOptions(
                   initialCenter: _initialCenter,
                   initialZoom: 12.0,
-                  onTap: (_, _a) => setState(() => _selectedEvent = null),
+                  onTap: (pos, point) => setState(() => _selectedEvent = null),
                 ),
                 children: [
                   TileLayer(

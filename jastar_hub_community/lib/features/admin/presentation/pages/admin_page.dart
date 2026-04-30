@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:jastar_hub_community/core/theme/app_colors.dart';
 import 'package:jastar_hub_community/features/admin/data/admin_repository.dart';
 import 'package:jastar_hub_community/shared/models/event_model.dart';
@@ -116,7 +117,10 @@ class _AdminPageState extends State<AdminPage> with SingleTickerProviderStateMix
                           final user = _users[index];
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundImage: NetworkImage(user.avatarUrl),
+                              backgroundImage: user.avatarUrl.isNotEmpty 
+                                  ? CachedNetworkImageProvider(user.avatarUrl)
+                                  : null,
+                              child: user.avatarUrl.isEmpty ? const Icon(Icons.person) : null,
                             ),
                             title: Text(user.name),
                             subtitle: Text('${user.email} • ${user.role}'),

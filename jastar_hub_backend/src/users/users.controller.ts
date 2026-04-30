@@ -1,4 +1,14 @@
-import { Controller, Get, Body, UseGuards, Request, Patch, Post, Delete, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Body,
+  UseGuards,
+  Request,
+  Patch,
+  Post,
+  Delete,
+  Param,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -8,13 +18,13 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
-  getProfile(@Request() req: any) {
+  getProfile(@Request() req: { user: { id: string } }) {
     return this.usersService.findOne({ id: req.user.id });
   }
 
   @UseGuards(JwtAuthGuard)
   @Patch('profile')
-  async updateProfile(@Request() req: any, @Body() updateData: any) {
+  async updateProfile(@Request() req: { user: { id: string } }, @Body() updateData: any) {
     return this.usersService.updateUser(req.user.id, updateData);
   }
 
@@ -30,13 +40,13 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Post(':id/follow')
-  async followUser(@Param('id') id: string, @Request() req: any) {
+  async followUser(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     return this.usersService.followUser(req.user.id, id);
   }
 
   @UseGuards(JwtAuthGuard)
   @Delete(':id/follow')
-  async unfollowUser(@Param('id') id: string, @Request() req: any) {
+  async unfollowUser(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     return this.usersService.unfollowUser(req.user.id, id);
   }
 

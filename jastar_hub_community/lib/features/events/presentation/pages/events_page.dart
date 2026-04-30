@@ -174,7 +174,7 @@ class _EventsPageState extends State<EventsPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       itemCount: 4,
       itemBuilder: (context, index) => const Padding(
-        padding: const EdgeInsets.only(bottom: 16),
+        padding: EdgeInsets.only(bottom: 16),
         child: ShimmerLoader(
           height: 180,
           width: double.infinity,
