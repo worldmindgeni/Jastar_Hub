@@ -30,10 +30,13 @@ class AuthRepository {
       _currentUser = UserModel.fromJson(userData);
       return _currentUser!;
     } on DioException catch (e) {
-      final message = e.response?.data['message'] ?? 'Login failed';
-      throw AuthException(message.toString());
+      final dynamic data = e.response?.data;
+      final String message = (data is Map) 
+          ? (data['message']?.toString() ?? 'Login failed') 
+          : (data?.toString() ?? 'Login failed');
+      throw AuthException(message);
     } catch (e) {
-      throw AuthException('An unexpected error occurred');
+      throw AuthException('An unexpected error occurred: $e');
     }
   }
 
@@ -58,10 +61,13 @@ class AuthRepository {
       _currentUser = UserModel.fromJson(userData);
       return _currentUser!;
     } on DioException catch (e) {
-      final message = e.response?.data['message'] ?? 'Registration failed';
-      throw AuthException(message.toString());
+      final dynamic data = e.response?.data;
+      final String message = (data is Map) 
+          ? (data['message']?.toString() ?? 'Registration failed') 
+          : (data?.toString() ?? 'Registration failed');
+      throw AuthException(message);
     } catch (e) {
-      throw AuthException('An unexpected error occurred');
+      throw AuthException('An unexpected error occurred: $e');
     }
   }
 
