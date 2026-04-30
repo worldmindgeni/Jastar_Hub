@@ -1,3 +1,2 @@
-
-74.220.52.0/24
-74.220.60.0/24
+ai:https://jastar-hub-1.onrender.com
+backend:https://jastar-backend.onrender.com
