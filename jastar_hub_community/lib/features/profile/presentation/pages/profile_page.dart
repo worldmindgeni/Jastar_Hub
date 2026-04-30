@@ -8,6 +8,8 @@ import 'package:jastar_hub_community/shared/data/mock_data.dart';
 import 'package:jastar_hub_community/features/home/presentation/widgets/event_card_widget.dart';
 import 'package:jastar_hub_community/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:jastar_hub_community/features/auth/data/models/user_model.dart';
+import 'package:jastar_hub_community/features/events/data/repositories/event_repository.dart';
+import 'package:jastar_hub_community/shared/models/event_model.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -18,11 +20,35 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final EventRepository _eventRepository = EventRepository();
+
+  List<EventModel> _joinedEvents = [];
+  List<EventModel> _organizedEvents = [];
+  bool _isLoadingEvents = true;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    _loadUserEvents();
+  }
+
+  Future<void> _loadUserEvents() async {
+    try {
+      final joined = await _eventRepository.getJoinedEvents();
+      final organized = await _eventRepository.getOrganizedEvents();
+      if (mounted) {
+        setState(() {
+          _joinedEvents = joined;
+          _organizedEvents = organized;
+          _isLoadingEvents = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _isLoadingEvents = false);
+      }
+    }
   }
 
   @override
@@ -55,6 +81,14 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
             backgroundColor: Colors.transparent,
             elevation: 0,
             actions: [
+              if (user.role == 'ADMIN')
+                IconButton(
+                  onPressed: () => context.push('/admin'),
+                  icon: Icon(
+                    Icons.admin_panel_settings_rounded,
+                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                  ),
+                ),
               IconButton(
                 onPressed: () => context.push('/settings'),
                 icon: Icon(
@@ -164,34 +198,61 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 ),
               ];
             },
-            body: TabBarView(
-              controller: _tabController,
-              children: [
-                ListView.builder(
-                  padding: const EdgeInsets.all(20),
-                  itemCount: MockData.events.length,
-                  itemBuilder: (context, index) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 16),
-                      child: EventCardWidget(
-                        event: MockData.events[index],
-                        onTap: () => context.push('/events/${MockData.events[index].id}', extra: MockData.events[index]),
-                      ),
-                    );
-                  },
-                ),
-                Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
+            body: _isLoadingEvents
+                ? const Center(child: CircularProgressIndicator())
+                : TabBarView(
+                    controller: _tabController,
                     children: [
-                      Icon(Icons.event_seat_rounded, size: 64, color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight),
-                      const SizedBox(height: 16),
-                      Text('Вы еще не организовали события', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+                      _joinedEvents.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.event_available_rounded, size: 64, color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight),
+                                  const SizedBox(height: 16),
+                                  Text('Вы пока никуда не идете', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(20),
+                              itemCount: _joinedEvents.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: EventCardWidget(
+                                    event: _joinedEvents[index],
+                                    onTap: () => context.push('/events/${_joinedEvents[index].id}', extra: _joinedEvents[index]),
+                                  ),
+                                );
+                              },
+                            ),
+                      _organizedEvents.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.event_seat_rounded, size: 64, color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight),
+                                  const SizedBox(height: 16),
+                                  Text('Вы еще не организовали события', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(20),
+                              itemCount: _organizedEvents.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: EventCardWidget(
+                                    event: _organizedEvents[index],
+                                    onTap: () => context.push('/events/${_organizedEvents[index].id}', extra: _organizedEvents[index]),
+                                  ),
+                                );
+                              },
+                            ),
                     ],
                   ),
-                ),
-              ],
-            ),
           ),
         );
       },

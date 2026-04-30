@@ -133,6 +133,38 @@ class EventRepository {
       // Silently fail — non-critical
     }
   }
+
+  /// Get user's organized events.
+  Future<List<EventModel>> getOrganizedEvents() async {
+    try {
+      final response = await ApiClient.client.get('/events/user/organized');
+      final List<dynamic> data = response.data;
+      return data.map((json) => EventModel.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw EventException(e.response?.data['message'] ?? 'Failed to fetch organized events');
+    }
+  }
+
+  /// Get user's joined events.
+  Future<List<EventModel>> getJoinedEvents() async {
+    try {
+      final response = await ApiClient.client.get('/events/user/joined');
+      final List<dynamic> data = response.data;
+      return data.map((json) => EventModel.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw EventException(e.response?.data['message'] ?? 'Failed to fetch joined events');
+    }
+  }
+
+  /// Create a new event.
+  Future<EventModel> createEvent(Map<String, dynamic> eventData) async {
+    try {
+      final response = await ApiClient.client.post('/events', data: eventData);
+      return EventModel.fromJson(response.data);
+    } on DioException catch (e) {
+      throw EventException(e.response?.data['message'] ?? 'Failed to create event');
+    }
+  }
 }
 
 class EventException implements Exception {

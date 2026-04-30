@@ -14,6 +14,8 @@ import 'package:jastar_hub_community/features/profile/presentation/pages/setting
 import 'package:jastar_hub_community/features/map/presentation/pages/map_page.dart';
 import 'package:jastar_hub_community/features/chat/presentation/pages/chat_page.dart';
 import 'package:jastar_hub_community/features/notifications/presentation/notifications_page.dart';
+import 'package:jastar_hub_community/features/events/presentation/pages/create_event_page.dart';
+import 'package:jastar_hub_community/features/admin/presentation/pages/admin_page.dart';
 import 'package:jastar_hub_community/shared/models/event_model.dart';
 
 /// Application router using GoRouter with ShellRoute for bottom navigation.
@@ -56,6 +58,14 @@ class AppRouter {
       GoRoute(
         path: '/notifications',
         builder: (context, state) => const NotificationsPage(),
+      ),
+      GoRoute(
+        path: '/create-event',
+        builder: (context, state) => const CreateEventPage(),
+      ),
+      GoRoute(
+        path: '/admin',
+        builder: (context, state) => const AdminPage(),
       ),
 
       // ─── Main App Routes (with bottom nav) ────────────────

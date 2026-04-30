@@ -166,4 +166,27 @@ export class EventsService {
       },
     });
   }
+
+  async getUserOrganizedEvents(userId: string): Promise<Event[]> {
+    return this.prisma.event.findMany({
+      where: { organizerId: userId },
+      include: {
+        organizer: { select: { id: true, name: true, avatarUrl: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async getUserJoinedEvents(userId: string): Promise<Event[]> {
+    const participations = await this.prisma.participation.findMany({
+      where: { userId },
+      include: {
+        event: {
+          include: { organizer: { select: { id: true, name: true, avatarUrl: true } } },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return participations.map(p => p.event);
+  }
 }

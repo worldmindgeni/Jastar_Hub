@@ -88,6 +88,18 @@ export class EventsController {
   }
 
   @UseGuards(AuthGuard('jwt'))
+  @Get('user/organized')
+  async getUserOrganizedEvents(@Request() req: any) {
+    return this.eventsService.getUserOrganizedEvents(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('user/joined')
+  async getUserJoinedEvents(@Request() req: any) {
+    return this.eventsService.getUserJoinedEvents(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Post(':id/interact')
   async trackInteraction(
     @Param('id') id: string,

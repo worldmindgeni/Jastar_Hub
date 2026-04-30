@@ -161,6 +161,11 @@ class _EventsPageState extends State<EventsPage> {
         );
       },
     ),
+    floatingActionButton: FloatingActionButton(
+      onPressed: () => context.push('/create-event'),
+      backgroundColor: AppColors.primary,
+      child: const Icon(Icons.add_rounded, color: Colors.white),
+    ),
   );
 }
 
