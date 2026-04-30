@@ -9,6 +9,7 @@ import 'package:jastar_hub_community/shared/widgets/shimmer_loader.dart';
 import 'package:jastar_hub_community/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:jastar_hub_community/features/events/presentation/cubit/events_cubit.dart';
 import 'package:jastar_hub_community/features/events/presentation/cubit/recommendations_cubit.dart';
+import 'package:jastar_hub_community/features/notifications/presentation/notifications_cubit.dart';
 import 'package:jastar_hub_community/shared/data/mock_data.dart';
 import 'package:jastar_hub_community/features/home/presentation/widgets/event_card_widget.dart';
 import 'package:jastar_hub_community/features/home/presentation/widgets/section_header.dart';
@@ -111,46 +112,67 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
 
-                    // Notification bell
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.cardDark
-                            : AppColors.surfaceLight,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isDark
-                              ? AppColors.borderDark
-                              : AppColors.borderLight,
-                        ),
-                      ),
-                      child: Stack(
-                        children: [
-                          Center(
-                            child: Icon(
-                              Icons.notifications_outlined,
-                              size: 22,
+                    // Notification bell with real unread count
+                    BlocBuilder<NotificationsCubit, NotificationsState>(
+                      builder: (context, notifState) {
+                        final unreadCount = (notifState is NotificationsLoaded)
+                            ? notifState.unreadCount
+                            : 0;
+                        return GestureDetector(
+                          onTap: () => context.push('/notifications'),
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
                               color: isDark
-                                  ? AppColors.textPrimaryDark
-                                  : AppColors.textPrimaryLight,
-                            ),
-                          ),
-                          Positioned(
-                            top: 10,
-                            right: 10,
-                            child: Container(
-                              width: 10,
-                              height: 10,
-                              decoration: const BoxDecoration(
-                                color: AppColors.accent,
-                                shape: BoxShape.circle,
+                                  ? AppColors.cardDark
+                                  : AppColors.surfaceLight,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isDark
+                                    ? AppColors.borderDark
+                                    : AppColors.borderLight,
                               ),
                             ),
+                            child: Stack(
+                              children: [
+                                Center(
+                                  child: Icon(
+                                    Icons.notifications_outlined,
+                                    size: 22,
+                                    color: isDark
+                                        ? AppColors.textPrimaryDark
+                                        : AppColors.textPrimaryLight,
+                                  ),
+                                ),
+                                if (unreadCount > 0)
+                                  Positioned(
+                                    top: 8,
+                                    right: 8,
+                                    child: Container(
+                                      width: 16,
+                                      height: 16,
+                                      decoration: const BoxDecoration(
+                                        color: AppColors.accent,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          unreadCount > 9 ? '9+' : '$unreadCount',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 9,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
-                        ],
-                      ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -309,21 +331,32 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           SliverToBoxAdapter(
-            child: SizedBox(
-              height: AppConstants.eventCardHeight + 10,
-              child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                itemCount: MockData.trendingEvents.length,
-                itemBuilder: (context, index) {
-                  return EventCardWidget(
-                    event: MockData.trendingEvents[index],
-                    isCompact: true,
-                    onTap: () {},
-                    onFavoriteTap: () {},
-                  );
-                },
-              ),
+            child: Builder(
+              builder: (context) {
+                // Use loaded events sorted by attendees as trending
+                final trendingEvents = List.of(events)
+                  ..sort((a, b) => b.attendees.compareTo(a.attendees));
+                final topTrending = trendingEvents.take(5).toList();
+
+                if (isLoading) return _buildShimmerList(isCompact: true);
+
+                return SizedBox(
+                  height: AppConstants.eventCardHeight + 10,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    itemCount: topTrending.length,
+                    itemBuilder: (context, index) {
+                      return EventCardWidget(
+                        event: topTrending[index],
+                        isCompact: true,
+                        onTap: () => context.push('/events/${topTrending[index].id}', extra: topTrending[index]),
+                        onFavoriteTap: () {},
+                      );
+                    },
+                  ),
+                );
+              },
             ),
           ),
 

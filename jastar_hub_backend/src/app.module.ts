@@ -8,9 +8,19 @@ import { EventsModule } from './events/events.module';
 import { AdminModule } from './admin/admin.module';
 import { ChatModule } from './chat/chat.module';
 import { RecommendationsModule } from './recommendations/recommendations.module';
+import { NotificationsModule } from './notifications/notifications.module';
 
 @Module({
-  imports: [PrismaModule, AuthModule, UsersModule, EventsModule, AdminModule, ChatModule, RecommendationsModule],
+  imports: [
+    PrismaModule,
+    AuthModule,
+    UsersModule,
+    EventsModule,
+    AdminModule,
+    ChatModule,
+    RecommendationsModule,
+    NotificationsModule,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })

@@ -31,8 +31,8 @@ class AuthRepository {
       return _currentUser!;
     } on DioException catch (e) {
       final dynamic data = e.response?.data;
-      final String message = (data is Map) 
-          ? (data['message']?.toString() ?? 'Login failed') 
+      final String message = (data is Map)
+          ? (data['message']?.toString() ?? 'Login failed')
           : (data?.toString() ?? 'Login failed');
       throw AuthException(message);
     } catch (e) {
@@ -62,8 +62,8 @@ class AuthRepository {
       return _currentUser!;
     } on DioException catch (e) {
       final dynamic data = e.response?.data;
-      final String message = (data is Map) 
-          ? (data['message']?.toString() ?? 'Registration failed') 
+      final String message = (data is Map)
+          ? (data['message']?.toString() ?? 'Registration failed')
           : (data?.toString() ?? 'Registration failed');
       throw AuthException(message);
     } catch (e) {
@@ -71,9 +71,8 @@ class AuthRepository {
     }
   }
 
-  /// Password reset (Placeholder - depends on backend implementation).
+  /// Password reset.
   Future<void> forgotPassword({required String email}) async {
-    // This would typically hit an endpoint like /auth/forgot-password
     await Future.delayed(const Duration(milliseconds: 1000));
   }
 
@@ -83,26 +82,33 @@ class AuthRepository {
     _currentUser = null;
   }
 
-  /// Check for existing session.
+  /// Check for existing session by calling /auth/me.
   Future<UserModel?> checkAuth() async {
     final token = await TokenManager.getAccessToken();
     if (token == null) return null;
 
     try {
-      // In a real app, we might want a /auth/me endpoint to validate token
-      // For now, we'll assume if token exists, we can try to fetch profile or just trust it
-      // Let's simulate a profile fetch or use the token to get user info
-      // Since we don't have /auth/me yet, we will rely on subsequent failing requests to trigger logout
-      
-      // If we had /auth/me:
-      // final response = await ApiClient.client.get('/auth/me');
-      // _currentUser = UserModel.fromJson(response.data);
-      // return _currentUser;
-      
-      return _currentUser; 
-    } catch (e) {
+      final response = await ApiClient.client.get('/auth/me');
+      _currentUser = UserModel.fromJson(response.data);
+      return _currentUser;
+    } on DioException catch (_) {
+      // Token expired or invalid
       await logout();
       return null;
+    } catch (_) {
+      await logout();
+      return null;
+    }
+  }
+
+  /// Update user profile.
+  Future<UserModel> updateProfile(Map<String, dynamic> data) async {
+    try {
+      final response = await ApiClient.client.patch('/users/profile', data: data);
+      _currentUser = UserModel.fromJson(response.data);
+      return _currentUser!;
+    } on DioException catch (e) {
+      throw AuthException(e.response?.data['message'] ?? 'Failed to update profile');
     }
   }
 }
@@ -115,4 +121,3 @@ class AuthException implements Exception {
   @override
   String toString() => message;
 }
-

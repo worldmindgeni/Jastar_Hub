@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Event } from '@prisma/client';
 
@@ -14,7 +14,7 @@ export class EventsService {
     orderBy?: Prisma.EventOrderByWithRelationInput;
   }): Promise<Event[]> {
     const { skip, take, cursor, where, orderBy } = params;
-    
+
     // Default to only showing APPROVED events for general list
     const finalWhere = {
       ...where,
@@ -23,13 +23,16 @@ export class EventsService {
 
     return this.prisma.event.findMany({
       skip,
-      take,
+      take: take || 20,
       cursor,
       where: finalWhere,
-      orderBy,
+      orderBy: orderBy || { date: 'asc' },
       include: {
         organizer: {
           select: { id: true, name: true, avatarUrl: true },
+        },
+        _count: {
+          select: { favorites: true },
         },
       },
     });
@@ -42,6 +45,9 @@ export class EventsService {
         organizer: {
           select: { id: true, name: true, avatarUrl: true },
         },
+        _count: {
+          select: { favorites: true, participations: true },
+        },
       },
     });
 
@@ -52,12 +58,18 @@ export class EventsService {
   }
 
   async createEvent(data: Prisma.EventCreateInput): Promise<Event> {
-    return this.prisma.event.create({
-      data,
-    });
+    return this.prisma.event.create({ data });
   }
 
   async joinEvent(eventId: string, userId: string) {
+    // Check if already joined
+    const existing = await this.prisma.participation.findUnique({
+      where: { userId_eventId: { userId, eventId } },
+    });
+    if (existing) {
+      throw new ConflictException('Already joined this event');
+    }
+
     return this.prisma.$transaction(async (tx) => {
       const participation = await tx.participation.create({
         data: { eventId, userId },
@@ -90,6 +102,47 @@ export class EventsService {
     });
   }
 
+  async toggleFavorite(eventId: string, userId: string) {
+    const existing = await this.prisma.favorite.findUnique({
+      where: { userId_eventId: { userId, eventId } },
+    });
+
+    if (existing) {
+      await this.prisma.favorite.delete({
+        where: { id: existing.id },
+      });
+      return { isFavorite: false };
+    } else {
+      await this.prisma.favorite.create({
+        data: { userId, eventId },
+      });
+      return { isFavorite: true };
+    }
+  }
+
+  async getUserFavorites(userId: string): Promise<Event[]> {
+    const favorites = await this.prisma.favorite.findMany({
+      where: { userId },
+      include: {
+        event: {
+          include: {
+            organizer: {
+              select: { id: true, name: true, avatarUrl: true },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+    return favorites.map((f) => f.event);
+  }
+
+  async trackInteraction(eventId: string, userId: string, type: string) {
+    return this.prisma.eventInteraction.create({
+      data: { eventId, userId, type },
+    });
+  }
+
   async updateEvent(id: string, data: Prisma.EventUpdateInput): Promise<Event> {
     return this.prisma.event.update({
       where: { id },
@@ -98,8 +151,19 @@ export class EventsService {
   }
 
   async deleteEvent(where: Prisma.EventWhereUniqueInput): Promise<Event> {
-    return this.prisma.event.delete({
-      where,
+    return this.prisma.event.delete({ where });
+  }
+
+  async getTrending(take: number = 10): Promise<Event[]> {
+    return this.prisma.event.findMany({
+      where: { status: 'APPROVED' },
+      orderBy: { attendeesCount: 'desc' },
+      take,
+      include: {
+        organizer: {
+          select: { id: true, name: true, avatarUrl: true },
+        },
+      },
     });
   }
 }

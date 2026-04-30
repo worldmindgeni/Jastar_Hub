@@ -7,9 +7,10 @@ import 'package:jastar_hub_community/core/router/app_router.dart';
 import 'package:jastar_hub_community/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:jastar_hub_community/features/auth/data/repositories/auth_repository.dart';
 import 'package:jastar_hub_community/features/events/data/repositories/event_repository.dart';
-
 import 'package:jastar_hub_community/features/events/presentation/cubit/events_cubit.dart';
 import 'package:jastar_hub_community/features/events/presentation/cubit/recommendations_cubit.dart';
+import 'package:jastar_hub_community/features/notifications/data/notifications_repository.dart';
+import 'package:jastar_hub_community/features/notifications/presentation/notifications_cubit.dart';
 
 /// Root application widget.
 class JastarHubApp extends StatelessWidget {
@@ -24,6 +25,9 @@ class JastarHubApp extends StatelessWidget {
         ),
         RepositoryProvider<EventRepository>(
           create: (_) => EventRepository(),
+        ),
+        RepositoryProvider<NotificationsRepository>(
+          create: (_) => NotificationsRepository(),
         ),
       ],
       child: MultiBlocProvider(
@@ -42,6 +46,11 @@ class JastarHubApp extends StatelessWidget {
             create: (context) => RecommendationsCubit(
               eventRepository: context.read<EventRepository>(),
             )..fetchRecommendations(),
+          ),
+          BlocProvider<NotificationsCubit>(
+            create: (context) => NotificationsCubit(
+              repository: context.read<NotificationsRepository>(),
+            )..fetchNotifications(),
           ),
         ],
         child: MaterialApp.router(

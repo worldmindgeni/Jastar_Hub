@@ -4,14 +4,20 @@ import 'package:jastar_hub_community/shared/models/event_model.dart';
 
 /// Repository for handling event-related API calls.
 class EventRepository {
-  /// Fetch list of events with optional filters.
+  /// Fetch list of events with optional filters and pagination.
   Future<List<EventModel>> getEvents({
     String? category,
     String? city,
     String? search,
+    String? sort,
+    int skip = 0,
+    int take = 20,
   }) async {
     try {
-      final queryParameters = <String, dynamic>{};
+      final queryParameters = <String, dynamic>{
+        'skip': skip.toString(),
+        'take': take.toString(),
+      };
       if (category != null && category != 'all') {
         queryParameters['category'] = category;
       }
@@ -20,6 +26,9 @@ class EventRepository {
       }
       if (search != null && search.isNotEmpty) {
         queryParameters['search'] = search;
+      }
+      if (sort != null) {
+        queryParameters['sort'] = sort;
       }
 
       final response = await ApiClient.client.get(
@@ -66,6 +75,43 @@ class EventRepository {
     }
   }
 
+  /// Toggle favorite status for an event.
+  Future<bool> toggleFavorite(String id) async {
+    try {
+      final response = await ApiClient.client.post('/events/$id/favorite');
+      return response.data['isFavorite'] as bool;
+    } on DioException catch (e) {
+      throw EventException(e.response?.data['message'] ?? 'Failed to toggle favorite');
+    }
+  }
+
+  /// Get user's favorite events.
+  Future<List<EventModel>> getFavorites() async {
+    try {
+      final response = await ApiClient.client.get('/events/user/favorites');
+      final List<dynamic> data = response.data;
+      return data.map((json) => EventModel.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw EventException(e.response?.data['message'] ?? 'Failed to fetch favorites');
+    }
+  }
+
+  /// Fetch trending events.
+  Future<List<EventModel>> getTrending({int take = 10}) async {
+    try {
+      final response = await ApiClient.client.get(
+        '/events/trending',
+        queryParameters: {'take': take.toString()},
+      );
+      final List<dynamic> data = response.data;
+      return data.map((json) => EventModel.fromJson(json)).toList();
+    } on DioException catch (e) {
+      throw EventException(e.response?.data['message'] ?? 'Failed to fetch trending');
+    } catch (e) {
+      throw EventException('An unexpected error occurred');
+    }
+  }
+
   /// Fetch AI-based recommendations for user.
   Future<List<EventModel>> getRecommendations() async {
     try {
@@ -76,6 +122,15 @@ class EventRepository {
       throw EventException(e.response?.data['message'] ?? 'Failed to fetch recommendations');
     } catch (e) {
       throw EventException('An unexpected error occurred');
+    }
+  }
+
+  /// Track user interaction with an event (view, like, share).
+  Future<void> trackInteraction(String eventId, String type) async {
+    try {
+      await ApiClient.client.post('/events/$eventId/interact', data: {'type': type});
+    } catch (_) {
+      // Silently fail — non-critical
     }
   }
 }

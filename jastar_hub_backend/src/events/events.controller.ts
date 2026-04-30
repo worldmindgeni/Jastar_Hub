@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Body, Param, Query, UseGuards, Request } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { Prisma, Event } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
@@ -12,9 +12,12 @@ export class EventsController {
     @Query('category') category?: string,
     @Query('city') city?: string,
     @Query('search') search?: string,
+    @Query('skip') skip?: string,
+    @Query('take') take?: string,
+    @Query('sort') sort?: string,
   ): Promise<Event[]> {
     const where: Prisma.EventWhereInput = {};
-    if (category) where.category = category;
+    if (category && category !== 'all') where.category = category;
     if (city) where.city = city;
     if (search) {
       where.OR = [
@@ -23,10 +26,22 @@ export class EventsController {
       ];
     }
 
+    let orderBy: Prisma.EventOrderByWithRelationInput = { date: 'asc' };
+    if (sort === 'popular') orderBy = { attendeesCount: 'desc' };
+    if (sort === 'newest') orderBy = { createdAt: 'desc' };
+    if (sort === 'price') orderBy = { price: 'asc' };
+
     return this.eventsService.findAll({
       where,
-      orderBy: { date: 'asc' },
+      orderBy,
+      skip: skip ? parseInt(skip) : undefined,
+      take: take ? parseInt(take) : undefined,
     });
+  }
+
+  @Get('trending')
+  async getTrending(@Query('take') take?: string) {
+    return this.eventsService.getTrending(take ? parseInt(take) : 10);
   }
 
   @Get(':id')
@@ -47,6 +62,7 @@ export class EventsController {
       },
     });
   }
+
   @UseGuards(AuthGuard('jwt'))
   @Post(':id/join')
   async joinEvent(@Param('id') id: string, @Request() req: any) {
@@ -57,5 +73,27 @@ export class EventsController {
   @Post(':id/leave')
   async leaveEvent(@Param('id') id: string, @Request() req: any) {
     return this.eventsService.leaveEvent(id, req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/favorite')
+  async toggleFavorite(@Param('id') id: string, @Request() req: any) {
+    return this.eventsService.toggleFavorite(id, req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Get('user/favorites')
+  async getUserFavorites(@Request() req: any) {
+    return this.eventsService.getUserFavorites(req.user.id);
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post(':id/interact')
+  async trackInteraction(
+    @Param('id') id: string,
+    @Request() req: any,
+    @Body('type') type: string,
+  ) {
+    return this.eventsService.trackInteraction(id, req.user.id, type);
   }
 }

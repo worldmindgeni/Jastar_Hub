@@ -10,7 +10,7 @@ class ApiClient {
       // Development URL (Your Local IP)
       // baseUrl: 'http://192.168.0.8:3000',
       // Production URL (Render.com)
-      baseUrl: 'https://jastar-backend.onrender.com',
+      baseUrl: 'https://jastar-hub.onrender.com',
       connectTimeout: const Duration(seconds: 15),
       receiveTimeout: const Duration(seconds: 15),
       contentType: 'application/json',

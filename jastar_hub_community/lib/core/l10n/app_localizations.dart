@@ -143,7 +143,9 @@ class AppLocalizations {
 
       // Notifications
       'notifications': 'Notifications',
-      'no_notifications': 'No notifications',
+      'notifications_title': 'Notifications',
+      'no_notifications': 'No notifications yet',
+      'mark_all_read': 'Read all',
     },
     'ru': {
       // General
@@ -266,7 +268,9 @@ class AppLocalizations {
 
       // Notifications
       'notifications': 'Уведомления',
-      'no_notifications': 'Нет уведомлений',
+      'notifications_title': 'Уведомления',
+      'no_notifications': 'Уведомлений пока нет',
+      'mark_all_read': 'Прочитать все',
     },
     'kk': {
       // General
@@ -389,7 +393,9 @@ class AppLocalizations {
 
       // Notifications
       'notifications': 'Хабарландырулар',
+      'notifications_title': 'Хабарландырулар',
       'no_notifications': 'Хабарландырулар жоқ',
+      'mark_all_read': 'Барлығын оқу',
     },
   };
 

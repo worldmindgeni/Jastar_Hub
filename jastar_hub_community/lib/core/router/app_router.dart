@@ -13,6 +13,7 @@ import 'package:jastar_hub_community/features/profile/presentation/pages/profile
 import 'package:jastar_hub_community/features/profile/presentation/pages/settings_page.dart';
 import 'package:jastar_hub_community/features/map/presentation/pages/map_page.dart';
 import 'package:jastar_hub_community/features/chat/presentation/pages/chat_page.dart';
+import 'package:jastar_hub_community/features/notifications/presentation/notifications_page.dart';
 import 'package:jastar_hub_community/shared/models/event_model.dart';
 
 /// Application router using GoRouter with ShellRoute for bottom navigation.
@@ -51,6 +52,10 @@ class AppRouter {
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsPage(),
+      ),
+      GoRoute(
+        path: '/notifications',
+        builder: (context, state) => const NotificationsPage(),
       ),
 
       // ─── Main App Routes (with bottom nav) ────────────────

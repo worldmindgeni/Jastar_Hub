@@ -17,6 +17,15 @@ enum EventStatus {
   REJECTED
 }
 
+enum NotificationType {
+  EVENT_REMINDER
+  NEW_RECOMMENDATION
+  CHAT_MESSAGE
+  EVENT_UPDATE
+  NEW_FOLLOWER
+  SYSTEM
+}
+
 model User {
   id              String   @id @default(uuid())
   email           String   @unique
@@ -35,10 +44,15 @@ model User {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
-  events         Event[]   @relation("EventOrganizer")
-  participations Participation[]
-  messagesSent   Message[] @relation("SentMessages")
-  messagesRecv   Message[] @relation("ReceivedMessages")
+  events          Event[]          @relation("EventOrganizer")
+  participations  Participation[]
+  messagesSent    Message[]        @relation("SentMessages")
+  messagesRecv    Message[]        @relation("ReceivedMessages")
+  notifications   Notification[]
+  favorites       Favorite[]
+  followedBy      Follow[]         @relation("FollowedBy")
+  followings      Follow[]         @relation("Following")
+  interactions    EventInteraction[]
 }
 
 model Message {
@@ -46,14 +60,17 @@ model Message {
   content    String
   senderId   String
   receiverId String
+  isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
 
   sender   User @relation("SentMessages", fields: [senderId], references: [id])
   receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id])
+
+  @@index([senderId, receiverId])
 }
 
 model Event {
-  id              String   @id @default(uuid())
+  id              String        @id @default(uuid())
   title           String
   description     String
   imageUrl        String
@@ -69,11 +86,18 @@ model Event {
   status          EventStatus   @default(PENDING)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
-  
+
   organizerId     String
-  organizer       User     @relation("EventOrganizer", fields: [organizerId], references: [id])
-  
+  organizer       User          @relation("EventOrganizer", fields: [organizerId], references: [id])
+
   participations  Participation[]
+  favorites       Favorite[]
+  interactions    EventInteraction[]
+
+  @@index([category])
+  @@index([city])
+  @@index([date])
+  @@index([status])
 }
 
 model Participation {
@@ -85,4 +109,52 @@ model Participation {
   createdAt DateTime @default(now())
 
   @@unique([userId, eventId])
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  data      Json?
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, eventId])
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  follower    User     @relation("Following", fields: [followerId], references: [id])
+  followingId String
+  following   User     @relation("FollowedBy", fields: [followingId], references: [id])
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+}
+
+model EventInteraction {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  eventId   String
+  event     Event    @relation(fields: [eventId], references: [id])
+  type      String   // "view", "like", "share"
+  createdAt DateTime @default(now())
+
+  @@index([userId, eventId])
 }

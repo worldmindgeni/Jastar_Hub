@@ -57,7 +57,18 @@ export class AuthService {
         avatarUrl: user.avatarUrl,
         rank: user.rank,
         points: user.points,
+        role: user.role,
       },
     };
+  }
+
+  async getProfile(userId: string) {
+    const user = await this.usersService.findOne({ id: userId });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    // Return user without password
+    const { password, ...userWithoutPassword } = user;
+    return userWithoutPassword;
   }
 }
