@@ -80,87 +80,73 @@ class AppRouter {
         path: '/admin',
         builder: (context, state) => const AdminPage(),
       ),
-
-      // ─── Main App Routes (with bottom nav) ────────────────
-      StatefulShellRoute.indexedStack(
-        builder: (context, state, navigationShell) {
-          return ShellPage(
-            currentIndex: navigationShell.currentIndex,
-            onTabChanged: (index) => navigationShell.goBranch(
-              index,
-              initialLocation: index == navigationShell.currentIndex,
-            ),
-            child: navigationShell,
+      GoRoute(
+        path: '/chat/:id',
+        builder: (context, state) {
+          final partnerId = state.pathParameters['id']!;
+          final extra = state.extra as Map<String, dynamic>? ?? {};
+          return ChatDetailsPage(
+            partnerId: partnerId,
+            partnerName: extra['partnerName'] ?? 'Unknown',
+            partnerAvatarUrl: extra['partnerAvatarUrl'] ?? '',
           );
         },
-        branches: [
-          // Home
-          StatefulShellBranch(
+      ),
+
+      // ─── Main App Routes (with bottom nav) ────────────────
+      ShellRoute(
+        builder: (context, state, child) {
+          int index = 0;
+          final location = state.uri.path;
+          if (location.startsWith('/home')) index = 0;
+          else if (location.startsWith('/events')) index = 1;
+          else if (location.startsWith('/map')) index = 2;
+          else if (location.startsWith('/chat')) index = 3;
+          else if (location.startsWith('/profile')) index = 4;
+
+          return ShellPage(
+            currentIndex: index,
+            onTabChanged: (i) {
+              switch (i) {
+                case 0: context.go('/home'); break;
+                case 1: context.go('/events'); break;
+                case 2: context.go('/map'); break;
+                case 3: context.go('/chat'); break;
+                case 4: context.go('/profile'); break;
+              }
+            },
+            child: child,
+          );
+        },
+        routes: [
+          GoRoute(
+            path: '/home',
+            builder: (context, state) => const HomePage(),
+          ),
+          GoRoute(
+            path: '/events',
+            builder: (context, state) => const EventsPage(),
             routes: [
               GoRoute(
-                path: '/home',
-                builder: (context, state) => const HomePage(),
+                path: ':id',
+                builder: (context, state) {
+                  final event = state.extra as EventModel;
+                  return EventDetailsPage(event: event);
+                },
               ),
             ],
           ),
-          // Events
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/events',
-                builder: (context, state) => const EventsPage(),
-                routes: [
-                  GoRoute(
-                    path: ':id',
-                    builder: (context, state) {
-                      final event = state.extra as EventModel;
-                      return EventDetailsPage(event: event);
-                    },
-                  ),
-                ],
-              ),
-            ],
+          GoRoute(
+            path: '/map',
+            builder: (context, state) => const MapPage(),
           ),
-          // Map
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/map',
-                builder: (context, state) => const MapPage(),
-              ),
-            ],
+          GoRoute(
+            path: '/chat',
+            builder: (context, state) => const ChatPage(),
           ),
-          // Chat
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/chat',
-                builder: (context, state) => const ChatPage(),
-                routes: [
-                  GoRoute(
-                    path: ':id',
-                    builder: (context, state) {
-                      final partnerId = state.pathParameters['id']!;
-                      final extra = state.extra as Map<String, dynamic>? ?? {};
-                      return ChatDetailsPage(
-                        partnerId: partnerId,
-                        partnerName: extra['partnerName'] ?? 'Unknown',
-                        partnerAvatarUrl: extra['partnerAvatarUrl'] ?? '',
-                      );
-                    },
-                  ),
-                ],
-              ),
-            ],
-          ),
-          // Profile
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: '/profile',
-                builder: (context, state) => const ProfilePage(),
-              ),
-            ],
+          GoRoute(
+            path: '/profile',
+            builder: (context, state) => const ProfilePage(),
           ),
         ],
       ),

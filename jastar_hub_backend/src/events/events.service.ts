@@ -195,4 +195,11 @@ export class EventsService {
     });
     return participations.map((p) => p.event);
   }
+
+  async getUserWithInterests(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+      select: { id: true, interests: true },
+    });
+  }
 }
