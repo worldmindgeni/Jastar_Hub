@@ -49,7 +49,8 @@ class _EventCardWidgetState extends State<EventCardWidget>
   }
 
   Color _getCategoryColor() {
-    switch (widget.event.category) {
+    final cat = widget.event.category.toLowerCase();
+    switch (cat) {
       case 'technology':
         return AppColors.categoryTech;
       case 'sports':

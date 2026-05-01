@@ -97,7 +97,6 @@ class AppRouter {
         branches: [
           // Home
           StatefulShellBranch(
-            navigatorKey: _shellNavigatorKey,
             routes: [
               GoRoute(
                 path: '/home',

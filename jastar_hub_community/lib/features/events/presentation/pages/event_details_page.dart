@@ -30,7 +30,8 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
   }
 
   Color _getCategoryColor() {
-    switch (_event.category) {
+    final cat = _event.category.toLowerCase();
+    switch (cat) {
       case 'technology':
         return AppColors.categoryTech;
       case 'sports':
