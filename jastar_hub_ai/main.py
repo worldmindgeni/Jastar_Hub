@@ -31,12 +31,17 @@ def fetch_data():
         users_resp = requests.get(f"{BACKEND_URL}/users", timeout=10)
         events_resp = requests.get(f"{BACKEND_URL}/events", timeout=10)
 
-        if users_resp.status_code != 200 or events_resp.status_code != 200:
-            raise Exception("Failed to fetch data from backend")
+        if users_resp.status_code != 200:
+            logger.error(f"Failed to fetch users: {users_resp.status_code} - {users_resp.text}")
+            raise Exception(f"Failed to fetch users from backend: {users_resp.status_code}")
+            
+        if events_resp.status_code != 200:
+            logger.error(f"Failed to fetch events: {events_resp.status_code} - {events_resp.text}")
+            raise Exception(f"Failed to fetch events from backend: {events_resp.status_code}")
 
         return users_resp.json(), events_resp.json()
-    except requests.exceptions.ConnectionError:
-        logger.warning("Backend unreachable, returning empty data")
+    except requests.exceptions.ConnectionError as e:
+        logger.warning(f"Backend unreachable at {BACKEND_URL}: {e}")
         return [], []
 
 
