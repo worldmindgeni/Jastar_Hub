@@ -146,6 +146,16 @@ class AppLocalizations {
       'notifications_title': 'Notifications',
       'no_notifications': 'No notifications yet',
       'mark_all_read': 'Read all',
+
+      // Settings Specific
+      'theme_light': 'Light',
+      'theme_dark': 'Dark',
+      'theme_system': 'System Default',
+      'choose_theme': 'Choose Theme',
+      'choose_language': 'Choose Language',
+      'english': 'English',
+      'russian': 'Russian',
+      'kazakh': 'Kazakh',
     },
     'ru': {
       // General
@@ -271,6 +281,16 @@ class AppLocalizations {
       'notifications_title': 'Уведомления',
       'no_notifications': 'Уведомлений пока нет',
       'mark_all_read': 'Прочитать все',
+
+      // Settings Specific
+      'theme_light': 'Светлая',
+      'theme_dark': 'Темная',
+      'theme_system': 'Системная',
+      'choose_theme': 'Выберите тему',
+      'choose_language': 'Выберите язык',
+      'english': 'Английский',
+      'russian': 'Русский',
+      'kazakh': 'Казахский',
     },
     'kk': {
       // General
@@ -396,6 +416,16 @@ class AppLocalizations {
       'notifications_title': 'Хабарландырулар',
       'no_notifications': 'Хабарландырулар жоқ',
       'mark_all_read': 'Барлығын оқу',
+
+      // Settings Specific
+      'theme_light': 'Ашық',
+      'theme_dark': 'Қараңғы',
+      'theme_system': 'Жүйелік',
+      'choose_theme': 'Тақырыпты таңдаңыз',
+      'choose_language': 'Тілді таңдаңыз',
+      'english': 'Ағылшын',
+      'russian': 'Орыс',
+      'kazakh': 'Қазақ',
     },
   };
 

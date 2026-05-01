@@ -22,14 +22,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
   late TabController _tabController;
   final EventRepository _eventRepository = EventRepository();
 
-  List<EventModel> _joinedEvents = [];
+  List<EventModel> _activeEvents = [];
+  List<EventModel> _completedEvents = [];
   List<EventModel> _organizedEvents = [];
+  List<EventModel> _favoriteEvents = [];
   bool _isLoadingEvents = true;
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _loadUserEvents();
   }
 
@@ -37,10 +39,16 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
     try {
       final joined = await _eventRepository.getJoinedEvents();
       final organized = await _eventRepository.getOrganizedEvents();
+      final favorites = await _eventRepository.getFavorites();
+      
+      final now = DateTime.now();
+      
       if (mounted) {
         setState(() {
-          _joinedEvents = joined;
+          _activeEvents = joined.where((e) => e.date.isAfter(now)).toList();
+          _completedEvents = joined.where((e) => e.date.isBefore(now)).toList();
           _organizedEvents = organized;
+          _favoriteEvents = favorites;
           _isLoadingEvents = false;
         });
       }
@@ -191,7 +199,12 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                       labelColor: AppColors.primary,
                       unselectedLabelColor: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                       indicatorColor: AppColors.primary,
-                      tabs: const [Tab(text: 'Я иду'), Tab(text: 'Я организовал')],
+                      tabs: const [
+                        Tab(text: 'Активные'),
+                        Tab(text: 'Организовал'),
+                        Tab(text: 'Избранные'),
+                        Tab(text: 'Завершенные'),
+                      ],
                     ),
                     isDark,
                   ),
@@ -203,7 +216,8 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                 : TabBarView(
                     controller: _tabController,
                     children: [
-                      _joinedEvents.isEmpty
+                      // Активные (Active Events)
+                      _activeEvents.isEmpty
                           ? Center(
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -216,17 +230,19 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                             )
                           : ListView.builder(
                               padding: const EdgeInsets.all(20),
-                              itemCount: _joinedEvents.length,
+                              itemCount: _activeEvents.length,
                               itemBuilder: (context, index) {
                                 return Padding(
                                   padding: const EdgeInsets.only(bottom: 16),
                                   child: EventCardWidget(
-                                    event: _joinedEvents[index],
-                                    onTap: () => context.push('/events/${_joinedEvents[index].id}', extra: _joinedEvents[index]),
+                                    event: _activeEvents[index],
+                                    onTap: () => context.push('/events/${_activeEvents[index].id}', extra: _activeEvents[index]),
                                   ),
                                 );
                               },
                             ),
+                      
+                      // Организовал (Organized Events)
                       _organizedEvents.isEmpty
                           ? Center(
                               child: Column(
@@ -247,6 +263,58 @@ class _ProfilePageState extends State<ProfilePage> with SingleTickerProviderStat
                                   child: EventCardWidget(
                                     event: _organizedEvents[index],
                                     onTap: () => context.push('/events/${_organizedEvents[index].id}', extra: _organizedEvents[index]),
+                                  ),
+                                );
+                              },
+                            ),
+
+                      // Избранные (Favorite Events)
+                      _favoriteEvents.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.favorite_border_rounded, size: 64, color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight),
+                                  const SizedBox(height: 16),
+                                  Text('У вас нет избранных мероприятий', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(20),
+                              itemCount: _favoriteEvents.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: EventCardWidget(
+                                    event: _favoriteEvents[index],
+                                    onTap: () => context.push('/events/${_favoriteEvents[index].id}', extra: _favoriteEvents[index]),
+                                  ),
+                                );
+                              },
+                            ),
+
+                      // Завершенные (Completed Events)
+                      _completedEvents.isEmpty
+                          ? Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.history_rounded, size: 64, color: isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight),
+                                  const SizedBox(height: 16),
+                                  Text('Нет завершенных мероприятий', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
+                                ],
+                              ),
+                            )
+                          : ListView.builder(
+                              padding: const EdgeInsets.all(20),
+                              itemCount: _completedEvents.length,
+                              itemBuilder: (context, index) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 16),
+                                  child: EventCardWidget(
+                                    event: _completedEvents[index],
+                                    onTap: () => context.push('/events/${_completedEvents[index].id}', extra: _completedEvents[index]),
                                   ),
                                 );
                               },

@@ -8,9 +8,14 @@ import {
   Post,
   Delete,
   Param,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 
 @Controller('users')
 export class UsersController {
@@ -26,6 +31,30 @@ export class UsersController {
   @Patch('profile')
   async updateProfile(@Request() req: { user: { id: string } }, @Body() updateData: any) {
     return this.usersService.updateUser(req.user.id, updateData);
+  }
+
+  @UseGuards(JwtAuthGuard)
+  @Post('avatar')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './public/uploads',
+        filename: (req, file, callback) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          const ext = extname(file.originalname);
+          callback(null, `${uniqueSuffix}${ext}`);
+        },
+      }),
+    }),
+  )
+  async uploadAvatar(@Request() req: { user: { id: string } }, @UploadedFile() file: Express.Multer.File) {
+    const avatarUrl = `/public/uploads/${file.filename}`;
+    return this.usersService.updateUser(req.user.id, { avatarUrl });
+  }
+
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    return this.usersService.findOne({ id });
   }
 
   @Get()

@@ -236,35 +236,42 @@ class _EventDetailsPageState extends State<EventDetailsPage> {
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                         const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 24,
-                              backgroundImage: CachedNetworkImageProvider(_event.organizerAvatar),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _event.organizerName,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 16,
-                                    ),
+                        InkWell(
+                          onTap: () => context.push('/user/${_event.organizerId}'),
+                          borderRadius: BorderRadius.circular(12),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Row(
+                              children: [
+                                CircleAvatar(
+                                  radius: 24,
+                                  backgroundImage: CachedNetworkImageProvider(_event.organizerAvatar),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        _event.organizerName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Организатор проверенный',
+                                        style: TextStyle(
+                                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                  Text(
-                                    'Организатор проверенный',
-                                    style: TextStyle(
-                                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
                         const SizedBox(height: 32),
 

@@ -26,7 +26,7 @@ dependencies:
   socket_io_client: ^3.0.2
 
   # Local Storage
-  shared_preferences: ^2.5.0
+  shared_preferences: ^2.5.5
   flutter_secure_storage: ^9.2.4
 
   # UI
@@ -40,6 +40,7 @@ dependencies:
   flutter_map: ^8.3.0
   latlong2: ^0.9.1
   timeago: ^3.7.0
+  image_picker: ^1.2.2
 
 dev_dependencies:
   flutter_test:

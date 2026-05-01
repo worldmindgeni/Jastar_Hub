@@ -10,6 +10,7 @@ class EventModel {
   final String city;
   final double? latitude;
   final double? longitude;
+  final String organizerId;
   final String organizerName;
   final String organizerAvatar;
   final double price;
@@ -30,6 +31,7 @@ class EventModel {
     this.city = '',
     this.latitude,
     this.longitude,
+    this.organizerId = '',
     required this.organizerName,
     this.organizerAvatar = '',
     this.price = 0,
@@ -56,6 +58,7 @@ class EventModel {
     String? city,
     double? latitude,
     double? longitude,
+    String? organizerId,
     String? organizerName,
     String? organizerAvatar,
     double? price,
@@ -76,6 +79,7 @@ class EventModel {
       city: city ?? this.city,
       latitude: latitude ?? this.latitude,
       longitude: longitude ?? this.longitude,
+      organizerId: organizerId ?? this.organizerId,
       organizerName: organizerName ?? this.organizerName,
       organizerAvatar: organizerAvatar ?? this.organizerAvatar,
       price: price ?? this.price,
@@ -99,6 +103,7 @@ class EventModel {
       'city': city,
       'latitude': latitude,
       'longitude': longitude,
+      'organizerId': organizerId,
       'organizerName': organizerName,
       'organizerAvatar': organizerAvatar,
       'price': price,
@@ -111,8 +116,8 @@ class EventModel {
   }
 
   factory EventModel.fromJson(Map<String, dynamic> json) {
-    // Handle nested organizer if available
     final organizer = json['organizer'] as Map<String, dynamic>?;
+    final orgId = organizer?['id'] as String? ?? json['organizerId'] as String? ?? '';
     final orgName = organizer?['name'] as String? ?? json['organizerName'] as String? ?? 'Unknown';
     final orgAvatar = organizer?['avatarUrl'] as String? ?? json['organizerAvatar'] as String? ?? '';
 
@@ -127,6 +132,7 @@ class EventModel {
       city: json['city'] as String? ?? '',
       latitude: (json['latitude'] as num?)?.toDouble(),
       longitude: (json['longitude'] as num?)?.toDouble(),
+      organizerId: orgId,
       organizerName: orgName,
       organizerAvatar: orgAvatar,
       price: (json['price'] as num?)?.toDouble() ?? 0,

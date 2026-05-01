@@ -10,6 +10,8 @@ import 'package:jastar_hub_community/features/home/presentation/pages/home_page.
 import 'package:jastar_hub_community/features/events/presentation/pages/events_page.dart';
 import 'package:jastar_hub_community/features/events/presentation/pages/event_details_page.dart';
 import 'package:jastar_hub_community/features/profile/presentation/pages/profile_page.dart';
+import 'package:jastar_hub_community/features/profile/presentation/pages/public_user_profile_page.dart';
+import 'package:jastar_hub_community/features/profile/presentation/pages/edit_profile_page.dart';
 import 'package:jastar_hub_community/features/profile/presentation/pages/settings_page.dart';
 import 'package:jastar_hub_community/features/map/presentation/pages/map_page.dart';
 import 'package:jastar_hub_community/features/chat/presentation/pages/chat_page.dart';
@@ -51,6 +53,17 @@ class AppRouter {
       GoRoute(
         path: '/forgot-password',
         builder: (context, state) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: '/edit-profile',
+        builder: (context, state) => const EditProfilePage(),
+      ),
+      GoRoute(
+        path: '/user/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id']!;
+          return PublicUserProfilePage(userId: id);
+        },
       ),
       GoRoute(
         path: '/settings',

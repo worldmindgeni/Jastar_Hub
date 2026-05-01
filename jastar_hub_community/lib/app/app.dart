@@ -11,6 +11,7 @@ import 'package:jastar_hub_community/features/events/presentation/cubit/events_c
 import 'package:jastar_hub_community/features/events/presentation/cubit/recommendations_cubit.dart';
 import 'package:jastar_hub_community/features/notifications/data/notifications_repository.dart';
 import 'package:jastar_hub_community/features/notifications/presentation/notifications_cubit.dart';
+import 'package:jastar_hub_community/app/cubit/app_cubit.dart';
 
 /// Root application widget.
 class JastarHubApp extends StatelessWidget {
@@ -52,27 +53,35 @@ class JastarHubApp extends StatelessWidget {
               repository: context.read<NotificationsRepository>(),
             )..fetchNotifications(),
           ),
+          BlocProvider<AppCubit>(
+            create: (context) => AppCubit()..init(),
+          ),
         ],
-        child: MaterialApp.router(
-          title: 'Jastar Hub Community',
-          debugShowCheckedModeBanner: false,
+        child: BlocBuilder<AppCubit, AppState>(
+          builder: (context, appState) {
+            return MaterialApp.router(
+              title: 'Jastar Hub Community',
+              debugShowCheckedModeBanner: false,
 
-          // Theme
-          theme: AppTheme.light,
-          darkTheme: AppTheme.dark,
-          themeMode: ThemeMode.system,
+              // Theme
+              theme: AppTheme.light,
+              darkTheme: AppTheme.dark,
+              themeMode: appState.themeMode,
 
-          // Routing
-          routerConfig: AppRouter.router,
+              // Routing
+              routerConfig: AppRouter.router,
 
-          // Localization — auto-detect from device
-          localizationsDelegates: const [
-            AppLocalizations.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: AppLocalizations.supportedLocales,
+              // Localization
+              locale: appState.locale,
+              localizationsDelegates: const [
+                AppLocalizations.delegate,
+                GlobalMaterialLocalizations.delegate,
+                GlobalWidgetsLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: AppLocalizations.supportedLocales,
+            );
+          },
         ),
       ),
     );
