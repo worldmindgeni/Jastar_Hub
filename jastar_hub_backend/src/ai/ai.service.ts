@@ -2,9 +2,14 @@ import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Event } from '@prisma/client';
 import axios from 'axios';
+import { IsString, IsOptional } from 'class-validator';
 
 export class ChatMessage {
+  @IsString()
   message: string;
+
+  @IsOptional()
+  @IsString()
   userId?: string;
 }
 
