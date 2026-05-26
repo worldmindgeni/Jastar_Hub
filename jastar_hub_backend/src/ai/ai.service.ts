@@ -2,12 +2,13 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { Event } from '@prisma/client';
 
-export interface ChatMessage {
+// Класс вместо интерфейса — нужно для emitDecoratorMetadata + isolatedModules
+export class ChatMessage {
   message: string;
   userId?: string;
 }
 
-export interface ChatResponse {
+export class ChatResponse {
   reply: string;
   suggestions: string[];
 }
