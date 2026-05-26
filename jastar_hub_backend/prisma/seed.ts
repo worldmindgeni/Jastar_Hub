@@ -308,8 +308,22 @@ async function main() {
 
   for (const eventData of events) {
     const { organizerId, ...data } = eventData;
-    await prisma.event.create({
-      data: {
+    // upsert по title + organizerId — повторный запуск seed не создаёт дубликаты
+    await prisma.event.upsert({
+      where: {
+        // составной уникальный ключ нужен в schema, поэтому ищем вручную
+        id: (
+          await prisma.event.findFirst({
+            where: {
+              title: data.title,
+              organizerId,
+            },
+            select: { id: true },
+          })
+        )?.id ?? 'new',
+      },
+      update: {},
+      create: {
         ...data,
         organizer: { connect: { id: organizerId } },
       },
