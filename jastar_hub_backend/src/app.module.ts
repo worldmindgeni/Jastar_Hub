@@ -8,7 +8,7 @@ import { UsersModule } from './users/users.module';
 import { EventsModule } from './events/events.module';
 import { AdminModule } from './admin/admin.module';
 import { ChatModule } from './chat/chat.module';
-import { RecommendationsModule } from './recommendations/recommendations.module';
+import { AiModule } from './ai/ai.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { KeepAliveModule } from './keep-alive/keep-alive.module';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
@@ -29,7 +29,7 @@ import { join } from 'path';
     EventsModule,
     AdminModule,
     ChatModule,
-    RecommendationsModule,
+    AiModule,
     NotificationsModule,
     KeepAliveModule,
   ],
