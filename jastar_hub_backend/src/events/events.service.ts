@@ -62,6 +62,22 @@ export class EventsService {
   }
 
   async createEvent(data: Prisma.EventCreateInput): Promise<Event> {
+    // Проверяем дубликат: то же название + тот же организатор + та же дата
+    const organizerId = (data.organizer as any)?.connect?.id;
+    if (organizerId) {
+      const duplicate = await this.prisma.event.findFirst({
+        where: {
+          title: { equals: data.title as string, mode: 'insensitive' },
+          organizerId,
+          date: data.date as Date,
+        },
+      });
+      if (duplicate) {
+        throw new ConflictException(
+          'Мероприятие с таким названием и датой уже существует',
+        );
+      }
+    }
     return this.prisma.event.create({ data });
   }
 
