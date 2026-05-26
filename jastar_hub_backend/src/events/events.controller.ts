@@ -8,14 +8,21 @@ import {
   Query,
   UseGuards,
   Request,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { EventsService } from './events.service';
 import { Prisma, Event } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('events')
 export class EventsController {
-  constructor(private readonly eventsService: EventsService) {}
+  constructor(
+    private readonly eventsService: EventsService,
+    private readonly cloudinary: CloudinaryService,
+  ) {}
 
   @Get()
   async getEvents(
@@ -117,5 +124,14 @@ export class EventsController {
     @Body('type') type: string,
   ) {
     return this.eventsService.trackInteraction(id, req.user.id, type);
+  }
+
+  // Загрузка обложки события в Cloudinary
+  @UseGuards(AuthGuard('jwt'))
+  @Post('upload-image')
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadEventImage(@UploadedFile() file: Express.Multer.File) {
+    const url = await this.cloudinary.uploadBuffer(file.buffer, 'jastar-hub/events');
+    return { url };
   }
 }

@@ -14,12 +14,14 @@ import {
 import { UsersService } from './users.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { CloudinaryService } from '../cloudinary/cloudinary.service';
 
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly cloudinary: CloudinaryService,
+  ) {}
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
@@ -35,20 +37,13 @@ export class UsersController {
 
   @UseGuards(JwtAuthGuard)
   @Post('avatar')
-  @UseInterceptors(
-    FileInterceptor('file', {
-      storage: diskStorage({
-        destination: './public/uploads',
-        filename: (req, file, callback) => {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-          const ext = extname(file.originalname);
-          callback(null, `${uniqueSuffix}${ext}`);
-        },
-      }),
-    }),
-  )
-  async uploadAvatar(@Request() req: { user: { id: string } }, @UploadedFile() file: Express.Multer.File) {
-    const avatarUrl = `/public/uploads/${file.filename}`;
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadAvatar(
+    @Request() req: { user: { id: string } },
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    // Загружаем в Cloudinary — файл хранится в облаке, не на диске Render
+    const avatarUrl = await this.cloudinary.uploadBuffer(file.buffer, 'jastar-hub/avatars');
     return this.usersService.updateUser(req.user.id, { avatarUrl });
   }
 
